@@ -12,6 +12,7 @@ import base64
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 
+from main import convertToBB
 
 def game_analysis():
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
@@ -55,4 +56,54 @@ def read_multiple_games():
             print(f'{k} -> {v}')
 
 
-read_multiple_games()
+# read_multiple_games()
+def test():
+    board = chess.Board()
+    pgn = open('data/test.pgn')
+    game = chess.pgn.read_game(pgn)
+
+    engine = chess.engine.SimpleEngine.popen_uci("stockfish")
+
+    prev_eval = 0
+    diff = 0
+    output_data_string = ''
+
+    for move in game.mainline_moves():
+        print("=" * 50)
+        print(board)
+
+        limit = chess.engine.Limit(time=0.100)
+        # limit = chess.engine.Limit(depth=20)
+        result = engine.analyse(board, limit)
+        # result = engine.play(board, chess.engine.Limit(time=0.100))
+        #
+        # info = engine.analyse(board, limit)
+        evaluation = result.score.relative.cp
+        print("=" * 50)
+
+        if board.turn:
+            diff = prev_eval - evaluation
+            if diff > 0.3:
+                evaluation_label = "B"  # badmove
+            else:
+                evaluation_label = "G"  # goodmove
+        else:
+            evaluation *= -1
+            diff = evaluation - prev_eval
+            if diff > 0.3:
+                evaluation_label = "B"  # badmove
+            else:
+                evaluation_label = "G"  # goodmove
+
+        print(f'DIFF: {diff}, Eval: {evaluation}, Prev: {prev_eval}, Label: {"Bad" if evaluation_label == "B" else "Good"}')
+        prev_eval = evaluation
+
+        board.push(move)
+        out_board = convertToBB(board)
+        output_data_string = '{0}{1},{2}\n'.format(output_data_string, out_board, evaluation_label)
+
+    print(output_data_string)
+
+    engine.quit()
+
+test()
