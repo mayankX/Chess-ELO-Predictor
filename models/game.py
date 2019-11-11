@@ -7,6 +7,16 @@ __author__ = 'Mayank Tiwari'
 from mongoengine import *
 
 
+class Metadata(EmbeddedDocument):
+    sourceFileName = StringField(required=True)
+    CreateDate = DateTimeField(default=datetime.datetime.now)
+    LastUpdateDate = DateTimeField(default=datetime.datetime.now)
+
+    def __init__(self, sourceFileName: str, *args, **values):
+        super().__init__(*args, **values)
+        self.sourceFileName = sourceFileName
+
+
 class Move(EmbeddedDocument):
     gameId = ReferenceField('Game')
     uci = StringField(required=True)
@@ -48,9 +58,10 @@ class Game(Document):
     timeControl = StringField(required=True)
     termination = StringField(required=True)
     # moves = ListField(ReferenceField(Move))
+    metadata = EmbeddedDocumentField(Metadata)
     moves = ListField(EmbeddedDocumentField(Move))
 
-    def __init__(self, headers: Headers, *args, **values):
+    def __init__(self, headers: Headers, metadata: Metadata, *args, **values):
         super().__init__(*args, **values)
         self.event = headers.get("Event")
         self.site = headers.get("Site")
@@ -67,4 +78,5 @@ class Game(Document):
         self.opening = headers.get("Opening")
         self.timeControl = headers.get("TimeControl")
         self.termination = headers.get("Termination")
+        self.metadata = metadata
         self.moves = []

@@ -2,7 +2,8 @@ __author__ = 'Mayank Tiwari'
 
 from mongoengine import *
 
-connect('tumblelog', host='localhost', port=27017)
+# connect('tumblelog', host='localhost', port=27017)
+connect('tumblelog', host='35.196.240.61', port=27017, username='root', password='P@ssword123', authentication_source='admin')
 
 import datetime
 

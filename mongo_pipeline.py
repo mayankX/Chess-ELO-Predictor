@@ -26,19 +26,22 @@ logger = logging.getLogger(__name__)
 '''
 Connecting to Mongo DB
 '''
-connect('chess', host='localhost', port=27017)
+# connect('chess', host='localhost', port=27017)
+connect('chess', host='35.196.240.61', port=27017, username='root', password='P@ssword123', authentication_source='admin')
 
 '''
 Reading the Chess PGN file
 '''
-pgn = open('data/lichess_db_standard_rated_2014-01.pgn')
+fileName = 'lichess_db_standard_rated_2014-01.pgn'
+pgn = open('data/%s' % fileName)
 
 '''
 Loading the chess processing engine
 '''
 engine = chess.engine.SimpleEngine.popen_uci("stockfish")
-limit = chess.engine.Limit(time=0.100)
-# limit = chess.engine.Limit(depth=25)
+# limit = chess.engine.Limit(time=0.100)
+limit = chess.engine.Limit(depth=20)
+metadata = Metadata(fileName)
 
 '''
 Beginning to parse the files and load it into the warehouse
@@ -54,7 +57,7 @@ while True:
 
     logging.info(f'Processing [{counter}] game...')
 
-    dbGameObject = Game(headers)
+    dbGameObject = Game(headers, metadata)
     # for k, v in headers.items():
     #     print(f'{k} -> {v}')
 
