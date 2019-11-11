@@ -114,7 +114,7 @@ def parse_pgn(dirname: str, filename: str):
 
 
 # parse_pgn('lichess_db_standard_rated_2014-01.pgn')
-def parse_all_pgn(location):
+def parse_all_pgn(location='./data'):
     for dirname, _, filenames in os.walk(location):
         for filename in filenames:
             if filename.endswith('.pgn'):
@@ -128,3 +128,4 @@ def parse_all_pgn(location):
 from mongo_pipeline import *
 parse_all_pgn('./data')
 '''
+parse_all_pgn()
