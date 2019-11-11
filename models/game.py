@@ -15,10 +15,12 @@ class Move(EmbeddedDocument):
     score = IntField(default=0)  # DecimalField
     previousMoveScore = IntField(default=0)
     turn = BooleanField(required=True)
+    isMate = BooleanField(default=False)
+
     # CreateDate = DateTimeField()
     # LastUpdateDate = DateTimeField(default=datetime.datetime.now)
 
-    def __init__(self, uci: str, fen: str, encodedMove: str, score: str, previousMoveScore: str, turn: bool, *args, **values):
+    def __init__(self, uci: str, fen: str, encodedMove: str, score: str, previousMoveScore: str, turn: bool, isMate=False, *args, **values):
         super().__init__(*args, **values)
         self.uci = uci
         self.fen = fen
@@ -26,6 +28,7 @@ class Move(EmbeddedDocument):
         self.score = score
         self.previousMoveScore = previousMoveScore
         self.turn = turn
+        self.isMate = isMate
 
 
 class Game(Document):

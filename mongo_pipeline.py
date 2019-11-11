@@ -60,29 +60,39 @@ while True:
 
     prev_eval = 0
     board = chess.Board()
-    for move in game.mainline_moves():
+    moves = list(game.mainline_moves())
+    totalMoves = len(moves)
+    for index, move in enumerate(moves):
+        board.push(move)
+        uci = move.uci()
+        print(f'{index + 1}/{totalMoves} Analyzing Move {uci} for Game: {counter}...')
         result = engine.analyse(board, limit)
-        evaluation = result.score.relative.cp
+
+        evaluationVal = result.score.relative
+        isMate = evaluationVal.is_mate()
+        if not isMate:
+            evaluation = evaluationVal.cp
+        else:
+            evaluation = evaluationVal.mate()
 
         turn = board.turn
-        if turn:
-            diff = prev_eval - evaluation
-            if diff > 0.3:
-                evaluation_label = "B"  # badmove
-            else:
-                evaluation_label = "G"  # goodmove
-        else:
-            evaluation *= -1
-            diff = evaluation - prev_eval
-            if diff > 0.3:
-                evaluation_label = "B"  # badmove
-            else:
-                evaluation_label = "G"  # goodmove
+        # if turn:
+        #     diff = prev_eval - evaluation
+        #     if diff > 0.3:
+        #         evaluation_label = "B"  # badmove
+        #     else:
+        #         evaluation_label = "G"  # goodmove
+        # else:
+        #     evaluation *= -1
+        #     diff = evaluation - prev_eval
+        #     if diff > 0.3:
+        #         evaluation_label = "B"  # badmove
+        #     else:
+        #         evaluation_label = "G"  # goodmove
 
-        board.push(move)
         encodedMove = convertToBB(board)
         fen = board.fen().__str__()
-        dbGameObject.moves.append(Move(move.uci(), fen, encodedMove, evaluation, prev_eval, turn))
+        dbGameObject.moves.append(Move(uci, fen, encodedMove, evaluation, prev_eval, turn, isMate))
 
         # print(f'DIFF: {diff}, Eval: {evaluation}, Prev: {prev_eval}, Label: {"Bad" if evaluation_label == "B" else "Good"}')
         prev_eval = evaluation
