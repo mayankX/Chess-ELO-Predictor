@@ -46,8 +46,7 @@ def parse_pgn(dirname: str, filename: str):
     '''
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
     # limit = chess.engine.Limit(time=0.100)
-    limit = chess.engine.Limit(depth=20)
-    metadata = Metadata(filename)
+    limit = chess.engine.Limit(depth=18)
 
     '''
     Beginning to parse the files and load it into the warehouse
@@ -62,8 +61,7 @@ def parse_pgn(dirname: str, filename: str):
         # print(headers)
 
         logging.info(f'Processing [{counter}] game...')
-
-        dbGameObject = Game(headers, metadata)
+        dbGameObject = Game(headers, Metadata(counter, filename))
         # for k, v in headers.items():
         #     print(f'{k} -> {v}')
 

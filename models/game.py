@@ -8,12 +8,14 @@ from mongoengine import *
 
 
 class Metadata(EmbeddedDocument):
+    sequenceNumber = IntField()
     sourceFileName = StringField(required=True)
     CreateDate = DateTimeField(default=datetime.datetime.now)
     LastUpdateDate = DateTimeField(default=datetime.datetime.now)
 
-    def __init__(self, sourceFileName: str, *args, **values):
+    def __init__(self, sequenceNumber:int, sourceFileName: str, *args, **values):
         super().__init__(*args, **values)
+        self.sequenceNumber = sequenceNumber
         self.sourceFileName = sourceFileName
 
 
