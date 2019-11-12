@@ -60,7 +60,9 @@ def read_multiple_games():
 # read_multiple_games()
 def test():
     board = chess.Board()
-    pgn = open('data/test.pgn')
+    # pgnFilePath = 'data/test.pgn'
+    pgnFilePath = 'data/game1_2.pgn'
+    pgn = open(pgnFilePath)
     game = chess.pgn.read_game(pgn)
 
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")

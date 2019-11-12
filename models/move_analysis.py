@@ -5,7 +5,7 @@ from chess.pgn import Headers
 from mongoengine import *
 
 
-class Metadata(EmbeddedDocument):
+class PGNMetadata(Document):
     sequenceNumber = IntField()
     sourceFileName = StringField(required=True)
     CreateDate = DateTimeField(default=datetime.datetime.now)
@@ -17,33 +17,9 @@ class Metadata(EmbeddedDocument):
         self.sourceFileName = sourceFileName
 
 
-class Move(EmbeddedDocument):
-    gameId = ReferenceField('Game')
-    uci = StringField(required=True)
-    fen = StringField(required=True)
-    encodedMove = StringField(required=True)
-    score = IntField(default=0)  # DecimalField
-    previousMoveScore = IntField(default=0)
-    turn = BooleanField(required=True)
-    isMate = BooleanField(default=False)
-
-    # CreateDate = DateTimeField()
-    # LastUpdateDate = DateTimeField(default=datetime.datetime.now)
-
-    def __init__(self, uci: str, fen: str, encodedMove: str, score: str, previousMoveScore: str, turn: bool, isMate=False, *args, **values):
-        super().__init__(*args, **values)
-        self.uci = uci
-        self.fen = fen
-        self.encodedMove = encodedMove
-        self.score = score
-        self.previousMoveScore = previousMoveScore
-        self.turn = turn
-        self.isMate = isMate
-
-
-class Game(Document):
+class GameMetadata(Document):
+    site = StringField(primary_key=True, unique=True)
     event = StringField(required=True)
-    site = StringField(required=True)
     white = StringField(required=True)
     black = StringField(required=True)
     result = StringField(required=True)
@@ -57,11 +33,10 @@ class Game(Document):
     opening = StringField(required=True)
     timeControl = StringField(required=True)
     termination = StringField(required=True)
-    # moves = ListField(ReferenceField(Move))
-    metadata = EmbeddedDocumentField(Metadata)
-    moves = ListField(EmbeddedDocumentField(Move))
+    # PGN File
+    pgnMetadata = EmbeddedDocumentField(PGNMetadata)
 
-    def __init__(self, headers: Headers, metadata: Metadata, *args, **values):
+    def __init__(self, headers: Headers, pgnMetadata: PGNMetadata, *args, **values):
         super().__init__(*args, **values)
         self.event = headers.get("Event")
         self.site = headers.get("Site")
@@ -78,8 +53,24 @@ class Game(Document):
         self.opening = headers.get("Opening")
         self.timeControl = headers.get("TimeControl")
         self.termination = headers.get("Termination")
-        self.metadata = metadata
-        self.moves = []
+        self.pgnMetadata = pgnMetadata
 
-    def site_exists(site_id) -> bool:
-        return Game.objects(site=site_id).count() != 0
+
+class MoveMetadata(EmbeddedDocument):
+    moveSequenceNumber = IntField(required=True)
+    totalMovesInGame = IntField(required=True)
+    turn = BooleanField(required=True)
+    isMate = BooleanField(default=False)
+    # Game Metadata
+    gameMetadata = ReferenceField(GameMetadata)
+
+
+class MoveAnalysis(Document):
+    uci = StringField(required=True)
+    fen = StringField(required=True)
+    encodedMove = StringField(required=True)
+    score = IntField(required=True)
+    metadata = ListField(EmbeddedDocumentField(MoveMetadata))
+
+    # def __init__(self, uci:str, fen:str, encodedMove:str, score:int,  headers: Headers, pgnMetadata: PGNMetadata, *args, **values):
+    #     super().__init__(*args, **values)

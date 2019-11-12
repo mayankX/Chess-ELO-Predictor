@@ -1,19 +1,17 @@
 __author__ = 'Mayank Tiwari'
 
-from mongoengine import *
-import os
-import chess
-import asyncio
-import chess.pgn
-import chess.engine
-import chess.svg
-
 import logging
 import logging.config
-import yaml
+import os
+
+import chess
+import chess.engine
+import chess.pgn
+import chess.svg
 
 from main import convertToBB
 from models.game import *
+from util import *
 
 '''
 Loading the Logging library here
@@ -27,8 +25,10 @@ logger = logging.getLogger(__name__)
 '''
 Connecting to Mongo DB
 '''
-# connect('chess', host='localhost', port=27017)
-connect('chess', host='35.196.240.61', port=27017, username='root', password='P@ssword123', authentication_source='admin')
+config = load_config('elo_config.yaml')
+profile = config["profile"]
+logger.info(f'Loaded configuration for Profile: {profile}')
+init_database(profile, config)
 
 
 def parse_pgn(dirname: str, filename: str):

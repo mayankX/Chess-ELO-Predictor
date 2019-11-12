@@ -1,0 +1,17 @@
+version: 1
+dev:
+  mongo:
+    host: localhost
+    port: 27017
+    auth: None
+prod:
+  mongo:
+    host: 35.196.240.61
+    port: 27017
+    auth: username
+    username: root
+    password: P@ssword123
+    authentication_source: admin
+collection_name: chess
+profile: dev
+#profile: prod
