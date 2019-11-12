@@ -1,6 +1,7 @@
 __author__ = 'Mayank Tiwari'
 
 from mongoengine import *
+import os
 import chess
 import asyncio
 import chess.pgn
@@ -26,69 +27,109 @@ logger = logging.getLogger(__name__)
 '''
 Connecting to Mongo DB
 '''
-connect('chess', host='localhost', port=27017)
+# connect('chess', host='localhost', port=27017)
+connect('chess', host='35.196.240.61', port=27017, username='root', password='P@ssword123', authentication_source='admin')
 
-'''
-Reading the Chess PGN file
-'''
-pgn = open('data/lichess_db_standard_rated_2014-01.pgn')
 
-'''
-Loading the chess processing engine
-'''
-engine = chess.engine.SimpleEngine.popen_uci("stockfish")
-limit = chess.engine.Limit(time=0.100)
-# limit = chess.engine.Limit(depth=25)
+def parse_pgn(dirname: str, filename: str):
+    filePath = os.path.join(dirname, filename)
+    logger.info(f'Starting to Parse PGN File: {filePath}')
 
-'''
-Beginning to parse the files and load it into the warehouse
-'''
-counter = 1
-while True:
-    game = chess.pgn.read_game(pgn)
-    if game is None:
-        break
+    '''
+    Reading the Chess PGN file
+    '''
+    # pgn = open('data/%s' % fileName)
+    pgn = open(filePath)
 
-    headers = game.headers
-    # print(headers)
+    '''
+    Loading the chess processing engine
+    '''
+    engine = chess.engine.SimpleEngine.popen_uci("stockfish")
+    # limit = chess.engine.Limit(time=0.100)
+    limit = chess.engine.Limit(depth=18)
 
-    logging.info(f'Processing [{counter}] game...')
+    '''
+    Beginning to parse the files and load it into the warehouse
+    '''
+    counter = 0
+    while True:
+        counter = counter + 1
+        game = chess.pgn.read_game(pgn)
+        if game is None:
+            break
 
-    dbGameObject = Game(headers)
-    # for k, v in headers.items():
-    #     print(f'{k} -> {v}')
+        headers = game.headers
+        # print(headers)
 
-    prev_eval = 0
-    board = chess.Board()
-    for move in game.mainline_moves():
-        result = engine.analyse(board, limit)
-        evaluation = result.score.relative.cp
+        site = headers.get("Site")
+        logging.info(f'Processing [{counter}] game... ID: {site}')
+        # if Game.site_exists(site=site):
+        if Game.objects(site=site).count() != 0:
+            logger.info("-> Skipping Already Processed File...")
+            continue
 
-        turn = board.turn
-        if turn:
-            diff = prev_eval - evaluation
-            if diff > 0.3:
-                evaluation_label = "B"  # badmove
+        dbGameObject = Game(headers, Metadata(counter, filename))
+        # for k, v in headers.items():
+        #     print(f'{k} -> {v}')
+
+        prev_eval = 0
+        board = chess.Board()
+        moves = list(game.mainline_moves())
+        totalMoves = len(moves)
+        for index, move in enumerate(moves):
+            board.push(move)
+            uci = move.uci()
+            print(f'{index + 1}/{totalMoves} Analyzing Move {uci} for Game: {counter}...')
+            result = engine.analyse(board, limit)
+
+            evaluationVal = result.score.relative
+            isMate = evaluationVal.is_mate()
+            if not isMate:
+                evaluation = evaluationVal.cp
             else:
-                evaluation_label = "G"  # goodmove
-        else:
-            evaluation *= -1
-            diff = evaluation - prev_eval
-            if diff > 0.3:
-                evaluation_label = "B"  # badmove
-            else:
-                evaluation_label = "G"  # goodmove
+                evaluation = evaluationVal.mate()
 
-        board.push(move)
-        encodedMove = convertToBB(board)
-        fen = board.fen().__str__()
-        dbGameObject.moves.append(Move(move.uci(), fen, encodedMove, evaluation, prev_eval, turn))
+            turn = board.turn
+            # if turn:
+            #     diff = prev_eval - evaluation
+            #     if diff > 0.3:
+            #         evaluation_label = "B"  # badmove
+            #     else:
+            #         evaluation_label = "G"  # goodmove
+            # else:
+            #     evaluation *= -1
+            #     diff = evaluation - prev_eval
+            #     if diff > 0.3:
+            #         evaluation_label = "B"  # badmove
+            #     else:
+            #         evaluation_label = "G"  # goodmove
 
-        # print(f'DIFF: {diff}, Eval: {evaluation}, Prev: {prev_eval}, Label: {"Bad" if evaluation_label == "B" else "Good"}')
-        prev_eval = evaluation
+            encodedMove = convertToBB(board)
+            fen = board.fen().__str__()
+            dbGameObject.moves.append(Move(uci, fen, encodedMove, evaluation, prev_eval, turn, isMate))
 
-    logger.info(f'Finished processing [{counter}] game... Saving outcome to database...')
-    dbGameObject.save(cascade=True)
-    counter = counter + 1
+            # print(f'DIFF: {diff}, Eval: {evaluation}, Prev: {prev_eval}, Label: {"Bad" if evaluation_label == "B" else "Good"}')
+            prev_eval = evaluation
 
-engine.quit()
+        logger.info(f'Finished processing [{counter}] game... Saving outcome to database...')
+        dbGameObject.save(cascade=True)
+
+    engine.quit()
+
+
+# parse_pgn('lichess_db_standard_rated_2014-01.pgn')
+def parse_all_pgn(location='./data'):
+    for dirname, _, filenames in os.walk(location):
+        for filename in filenames:
+            if filename.endswith('.pgn'):
+                # filePath = os.path.join(dirname, filename)
+                # print(filePath)
+                parse_pgn(dirname, filename)
+
+
+# parse_all_pgn('./data')
+'''
+from mongo_pipeline import *
+parse_all_pgn('./data')
+'''
+parse_all_pgn()

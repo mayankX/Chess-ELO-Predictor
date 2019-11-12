@@ -14,6 +14,7 @@ import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 
 from main import convertToBB
 
+
 def game_analysis():
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
     # test_fen = 'r1bq2n1/pp3kbQ/2n2p2/3p1P2/3Pp2p/2P5/PP4P1/RNB1KB1R w KQ - 0 14'
@@ -69,6 +70,8 @@ def test():
     output_data_string = ''
 
     for move in game.mainline_moves():
+        board.push(move)
+
         print("=" * 50)
         print(board)
 
@@ -78,7 +81,12 @@ def test():
         # result = engine.play(board, chess.engine.Limit(time=0.100))
         #
         # info = engine.analyse(board, limit)
-        evaluation = result.score.relative.cp
+        evaluationVal = result.score.relative
+        if not evaluationVal.is_mate():
+            evaluation = evaluationVal.cp
+        else:
+            evaluation = evaluationVal.mate()
+
         print("=" * 50)
 
         if board.turn:
@@ -98,12 +106,11 @@ def test():
         print(f'DIFF: {diff}, Eval: {evaluation}, Prev: {prev_eval}, Label: {"Bad" if evaluation_label == "B" else "Good"}')
         prev_eval = evaluation
 
-        board.push(move)
         out_board = convertToBB(board)
         output_data_string = '{0}{1},{2}\n'.format(output_data_string, out_board, evaluation_label)
 
     print(output_data_string)
-
     engine.quit()
+
 
 test()

@@ -7,6 +7,18 @@ __author__ = 'Mayank Tiwari'
 from mongoengine import *
 
 
+class Metadata(EmbeddedDocument):
+    sequenceNumber = IntField()
+    sourceFileName = StringField(required=True)
+    CreateDate = DateTimeField(default=datetime.datetime.now)
+    LastUpdateDate = DateTimeField(default=datetime.datetime.now)
+
+    def __init__(self, sequenceNumber: int, sourceFileName: str, *args, **values):
+        super().__init__(*args, **values)
+        self.sequenceNumber = sequenceNumber
+        self.sourceFileName = sourceFileName
+
+
 class Move(EmbeddedDocument):
     gameId = ReferenceField('Game')
     uci = StringField(required=True)
@@ -15,10 +27,12 @@ class Move(EmbeddedDocument):
     score = IntField(default=0)  # DecimalField
     previousMoveScore = IntField(default=0)
     turn = BooleanField(required=True)
+    isMate = BooleanField(default=False)
+
     # CreateDate = DateTimeField()
     # LastUpdateDate = DateTimeField(default=datetime.datetime.now)
 
-    def __init__(self, uci: str, fen: str, encodedMove: str, score: str, previousMoveScore: str, turn: bool, *args, **values):
+    def __init__(self, uci: str, fen: str, encodedMove: str, score: str, previousMoveScore: str, turn: bool, isMate=False, *args, **values):
         super().__init__(*args, **values)
         self.uci = uci
         self.fen = fen
@@ -26,6 +40,7 @@ class Move(EmbeddedDocument):
         self.score = score
         self.previousMoveScore = previousMoveScore
         self.turn = turn
+        self.isMate = isMate
 
 
 class Game(Document):
@@ -45,9 +60,10 @@ class Game(Document):
     timeControl = StringField(required=True)
     termination = StringField(required=True)
     # moves = ListField(ReferenceField(Move))
+    metadata = EmbeddedDocumentField(Metadata)
     moves = ListField(EmbeddedDocumentField(Move))
 
-    def __init__(self, headers: Headers, *args, **values):
+    def __init__(self, headers: Headers, metadata: Metadata, *args, **values):
         super().__init__(*args, **values)
         self.event = headers.get("Event")
         self.site = headers.get("Site")
@@ -64,4 +80,8 @@ class Game(Document):
         self.opening = headers.get("Opening")
         self.timeControl = headers.get("TimeControl")
         self.termination = headers.get("Termination")
+        self.metadata = metadata
         self.moves = []
+
+    def site_exists(site_id) -> bool:
+        return Game.objects(site=site_id).count() != 0
