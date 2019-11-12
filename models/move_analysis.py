@@ -1,11 +1,12 @@
 __author__ = 'Mayank Tiwari'
 
 import datetime
+
 from chess.pgn import Headers
 from mongoengine import *
 
 
-class PGNMetadata(Document):
+class PGNMetadata(EmbeddedDocument):
     sequenceNumber = IntField()
     sourceFileName = StringField(required=True)
     CreateDate = DateTimeField(default=datetime.datetime.now)
@@ -55,21 +56,27 @@ class GameMetadata(Document):
         self.termination = headers.get("Termination")
         self.pgnMetadata = pgnMetadata
 
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.objects.with_id(id)
+
 
 class MoveMetadata(EmbeddedDocument):
     moveSequenceNumber = IntField(required=True)
     totalMovesInGame = IntField(required=True)
     turn = BooleanField(required=True)
     isMate = BooleanField(default=False)
+    fen = StringField(required=True)
+    uci = StringField(required=True)
     # Game Metadata
     gameMetadata = ReferenceField(GameMetadata)
 
 
-class MoveAnalysis(Document):
-    uci = StringField(required=True)
-    fen = StringField(required=True)
-    encodedMove = StringField(required=True)
+class BoardState(Document):
+    piecePlacement = StringField(required=True)
+    encodedState = StringField(required=True)
     score = IntField(required=True)
+    # Metadata
     metadata = ListField(EmbeddedDocumentField(MoveMetadata))
 
     # def __init__(self, uci:str, fen:str, encodedMove:str, score:int,  headers: Headers, pgnMetadata: PGNMetadata, *args, **values):

@@ -13,5 +13,5 @@ prod:
     password: P@ssword123
     authentication_source: admin
 collection_name: chess
-profile: dev
-#profile: prod
+#profile: dev
+profile: prod
