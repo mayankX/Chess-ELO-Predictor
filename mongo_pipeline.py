@@ -51,8 +51,9 @@ def parse_pgn(dirname: str, filename: str):
     '''
     Beginning to parse the files and load it into the warehouse
     '''
-    counter = 1
+    counter = 0
     while True:
+        counter = counter + 1
         game = chess.pgn.read_game(pgn)
         if game is None:
             break
@@ -60,7 +61,13 @@ def parse_pgn(dirname: str, filename: str):
         headers = game.headers
         # print(headers)
 
-        logging.info(f'Processing [{counter}] game...')
+        site = headers.get("Site")
+        logging.info(f'Processing [{counter}] game... ID: {site}')
+        # if Game.site_exists(site=site):
+        if Game.objects(site=site).count() != 0:
+            logger.info("-> Skipping Already Processed File...")
+            continue
+
         dbGameObject = Game(headers, Metadata(counter, filename))
         # for k, v in headers.items():
         #     print(f'{k} -> {v}')
@@ -106,7 +113,6 @@ def parse_pgn(dirname: str, filename: str):
 
         logger.info(f'Finished processing [{counter}] game... Saving outcome to database...')
         dbGameObject.save(cascade=True)
-        counter = counter + 1
 
     engine.quit()
 

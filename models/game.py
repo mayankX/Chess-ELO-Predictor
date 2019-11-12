@@ -13,7 +13,7 @@ class Metadata(EmbeddedDocument):
     CreateDate = DateTimeField(default=datetime.datetime.now)
     LastUpdateDate = DateTimeField(default=datetime.datetime.now)
 
-    def __init__(self, sequenceNumber:int, sourceFileName: str, *args, **values):
+    def __init__(self, sequenceNumber: int, sourceFileName: str, *args, **values):
         super().__init__(*args, **values)
         self.sequenceNumber = sequenceNumber
         self.sourceFileName = sourceFileName
@@ -82,3 +82,6 @@ class Game(Document):
         self.termination = headers.get("Termination")
         self.metadata = metadata
         self.moves = []
+
+    def site_exists(site_id) -> bool:
+        return Game.objects(site=site_id).count() != 0
