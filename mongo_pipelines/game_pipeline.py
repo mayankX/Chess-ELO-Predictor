@@ -10,9 +10,6 @@ import chess.engine
 import chess.pgn
 import chess.svg
 
-# if __name__ == '__main__':
-#     __import__('imp').load_source('root', os.path.abspath(os.path.join(os.path.split(__file__)[0], *(['..'] + ['__init__.py']))))
-
 ROOT_DIR = os.path.abspath(os.path.join(os.path.split(__file__)[0], '..'))
 sys.path.append(ROOT_DIR)
 

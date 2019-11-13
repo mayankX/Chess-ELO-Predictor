@@ -4,6 +4,13 @@ import yaml
 from mongoengine import connect
 
 
+# logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
+# with open('../logging_config.yaml', 'r') as f:
+#     config = yaml.safe_load(f.read())
+#     logging.config.dictConfig(config)
+# logger = logging.getLogger(__name__)
+
+
 def convertLetterToNumber(letter):
     if letter == 'K':
         return '100000000000'
@@ -66,6 +73,26 @@ def load_config(config_file):
             print(exc)
 
 
+# class CommandLogger(monitoring.CommandListener):
+#
+#     def started(self, event):
+#         logging.info("Command {0.command_name} with request id "
+#                      "{0.request_id} started on server "
+#                      "{0.connection_id}".format(event))
+#
+#     def succeeded(self, event):
+#         logging.info("Command {0.command_name} with request id "
+#                      "{0.request_id} on server {0.connection_id} "
+#                      "succeeded in {0.duration_micros} "
+#                      "microseconds".format(event))
+#
+#     def failed(self, event):
+#         logging.info("Command {0.command_name} with request id "
+#                      "{0.request_id} on server {0.connection_id} "
+#                      "failed in {0.duration_micros} "
+#                      "microseconds".format(event))
+
+
 def init_database(profile, config):
     collectionName = config['collection_name']
 
@@ -74,10 +101,12 @@ def init_database(profile, config):
     host = mongoConfiguration['host']
     port = mongoConfiguration['port']
     if mongoAuth is None or mongoAuth == 'None':
-        return connect(collectionName, host=host, port=port)
+        connect(collectionName, host=host, port=port)
     else:
         connect(
             collectionName, host=host, port=port,
             username=mongoConfiguration['username'], password=mongoConfiguration['password'],
             authentication_source=mongoConfiguration['authentication_source']
         )
+
+    # monitoring.register(CommandLogger())
