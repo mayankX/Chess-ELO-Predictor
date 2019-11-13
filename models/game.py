@@ -2,7 +2,6 @@ __author__ = 'Mayank Tiwari'
 
 import datetime
 
-from chess.pgn import Headers
 from mongoengine import *
 
 
@@ -62,25 +61,26 @@ class Game(Document):
     metadata = EmbeddedDocumentField(Metadata)
     moves = ListField(EmbeddedDocumentField(Move))
 
-    def __init__(self, headers: Headers, metadata: Metadata, *args, **values):
+    def __init__(self, headers=None, metadata=None, *args, **values):
         super().__init__(*args, **values)
-        self.event = headers.get("Event")
-        self.site = headers.get("Site")
-        self.white = headers.get("White")
-        self.black = headers.get("Black")
-        self.result = headers.get("Result")
-        self.uTCDate = headers.get("UTCDate")
-        self.uTCTime = headers.get("UTCTime")
-        self.whiteElo = headers.get("WhiteElo")
-        self.blackElo = headers.get("BlackElo")
-        self.whiteRatingDiff = headers.get("WhiteRatingDiff")
-        self.blackRatingDiff = headers.get("BlackRatingDiff")
-        self.eCO = headers.get("ECO")
-        self.opening = headers.get("Opening")
-        self.timeControl = headers.get("TimeControl")
-        self.termination = headers.get("Termination")
-        self.metadata = metadata
-        self.moves = []
+        if headers is not None:
+            self.event = headers.get("Event")
+            self.site = headers.get("Site")
+            self.white = headers.get("White")
+            self.black = headers.get("Black")
+            self.result = headers.get("Result")
+            self.uTCDate = headers.get("UTCDate")
+            self.uTCTime = headers.get("UTCTime")
+            self.whiteElo = headers.get("WhiteElo")
+            self.blackElo = headers.get("BlackElo")
+            self.whiteRatingDiff = headers.get("WhiteRatingDiff")
+            self.blackRatingDiff = headers.get("BlackRatingDiff")
+            self.eCO = headers.get("ECO")
+            self.opening = headers.get("Opening")
+            self.timeControl = headers.get("TimeControl")
+            self.termination = headers.get("Termination")
+            self.metadata = metadata
+            self.moves = []
 
     def site_exists(site_id) -> bool:
         return Game.objects(site=site_id).count() != 0
