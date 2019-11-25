@@ -50,6 +50,7 @@ def parse_pgn(dirname: str, filename: str):
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
     limit = chess.engine.Limit(time=0.200)
     # limit = chess.engine.Limit(depth=18)
+    # limit = chess.engine.Limit(depth=22)
 
     '''
     Beginning to parse the files and load it into the warehouse

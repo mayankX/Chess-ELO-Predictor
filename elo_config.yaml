@@ -6,7 +6,7 @@ dev:
     auth: None
 prod:
   mongo:
-    host: 35.196.240.61
+    host: 35.231.155.28
     port: 27017
     auth: username
     username: root

@@ -32,12 +32,16 @@ def writeOutput(file, line):
     file.write("\n")
 
 
-outF = open("game_analysis.csv", "w")
+# SEPARATOR = ", "
+SEPARATOR = "|"
+outF = open("game_analysis.psv", "w")
 writeOutput(
     outF,
-    'Event, Is Draw, Has Black Won, Opening, White ELO, Black ELO, Time Control, Termination, Total White Score, Total Black Score, No. White Moves, No. Black Moves, White Avg. Score, Black Avg. Score'
+    'Event' + SEPARATOR + 'Is Draw' + SEPARATOR + 'Has Black Won' + SEPARATOR + 'Opening' + SEPARATOR + 'White ELO' + SEPARATOR + 'Black ELO' + SEPARATOR + 'Time Control'
+    + SEPARATOR + 'Termination' + SEPARATOR + 'Total White Score' + SEPARATOR + 'Total Black Score' + SEPARATOR + 'No. White Moves' + SEPARATOR + 'No. Black Moves' + SEPARATOR +
+    'White Avg. Score' + SEPARATOR + 'Black Avg. Score'
 )
-
+logging.info('Begging to process data from MongoDB...')
 for game in Game.objects.all():
     isDraw = game.result == "1/2-1/2"
     hasBlackWon = False
@@ -60,8 +64,10 @@ for game in Game.objects.all():
 
     writeOutput(
         outF,
-        game.event + ", " + str(isDraw) + ", " + str(hasBlackWon) + ", " +
-        game.opening + ", " + game.whiteElo + ", " + game.blackElo + ", " + game.timeControl + ", " + game.termination + ", " \
-        + str(total_white_games) + ", " + str(total_black_games) + ", " + str(white_avg_score) + ", " + str(black_avg_score)
+        game.event + SEPARATOR + str(isDraw) + SEPARATOR + str(hasBlackWon) + SEPARATOR +
+        game.opening + SEPARATOR + game.whiteElo + SEPARATOR + game.blackElo + SEPARATOR + game.timeControl + SEPARATOR + game.termination + SEPARATOR \
+        + str(white_score_sum) + SEPARATOR + str(black_score_sum) + SEPARATOR + str(total_white_games) + SEPARATOR + str(total_black_games) + SEPARATOR \
+        + str(white_avg_score) + SEPARATOR + str(black_avg_score)
     )
 outF.close()
+logging.info('Finished processing data from MongoDB!')
