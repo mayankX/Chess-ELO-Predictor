@@ -1,5 +1,11 @@
 __author__ = 'Mayank Tiwari'
 
+import errno
+import os
+from datetime import datetime
+
+now = datetime.now()
+
 import logging.config
 
 from models.game import *
@@ -34,14 +40,25 @@ def writeOutput(file, line):
 
 # SEPARATOR = ", "
 SEPARATOR = "|"
-outF = open("game_analysis.psv", "w")
+
+timestampString = now.strftime("%m_%d_%Y_%H_%M_%S")
+outputFileName = f"dump/game_analysis_{timestampString}.psv"
+
+if not os.path.exists(os.path.dirname(outputFileName)):
+    try:
+        os.makedirs(os.path.dirname(outputFileName))
+    except OSError as exc:  # Guard against race condition
+        if exc.errno != errno.EEXIST:
+            raise
+
+outF = open(outputFileName, "w")
 writeOutput(
     outF,
     'Event' + SEPARATOR + 'Is Draw' + SEPARATOR + 'Has Black Won' + SEPARATOR + 'Opening' + SEPARATOR + 'White ELO' + SEPARATOR + 'Black ELO' + SEPARATOR + 'Time Control'
     + SEPARATOR + 'Termination' + SEPARATOR + 'Total White Score' + SEPARATOR + 'Total Black Score' + SEPARATOR + 'No. White Moves' + SEPARATOR + 'No. Black Moves' + SEPARATOR +
     'White Avg. Score' + SEPARATOR + 'Black Avg. Score'
 )
-logging.info('Begging to process data from MongoDB...')
+logging.info('Beginning to process data from MongoDB...')
 for game in Game.objects.all():
     isDraw = game.result == "1/2-1/2"
     hasBlackWon = False
