@@ -1,10 +1,10 @@
 __author__ = 'Mayank Tiwari'
 
-from mongoengine import *
+import logging.config
 
-# connect('tumblelog', host='localhost', port=27017)
-connect('tumblelog', host='35.196.240.61', port=27017, username='root', password='P@ssword123', authentication_source='admin')
+from models.game import *
 
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
 import datetime
 
 

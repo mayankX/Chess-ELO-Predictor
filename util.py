@@ -3,12 +3,12 @@ __author__ = 'Mayank Tiwari'
 import yaml
 from mongoengine import connect
 
-
 # logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
 # with open('../logging_config.yaml', 'r') as f:
 #     config = yaml.safe_load(f.read())
 #     logging.config.dictConfig(config)
 # logger = logging.getLogger(__name__)
+from pymongo import MongoClient
 
 
 def convertLetterToNumber(letter):
@@ -93,6 +93,23 @@ def load_config(config_file):
 #                      "microseconds".format(event))
 
 
+def init_database_mongo(profile, config):
+    # collectionName = config['collection_name']
+    mongoConfiguration = config[profile]['mongo']
+    mongoAuth = mongoConfiguration['auth']
+    host = mongoConfiguration['host']
+    port = mongoConfiguration['port']
+    if mongoAuth is None or mongoAuth == 'None':
+        return MongoClient(host=host, port=port, maxpoolsize=None)
+    else:
+        return MongoClient(
+            host=host, port=port,
+            username=mongoConfiguration['username'], password=mongoConfiguration['password'],
+            # authentication_source=mongoConfiguration['authentication_source'],
+            maxpoolsize=None
+        )
+
+
 def init_database(profile, config):
     collectionName = config['collection_name']
 
@@ -101,12 +118,13 @@ def init_database(profile, config):
     host = mongoConfiguration['host']
     port = mongoConfiguration['port']
     if mongoAuth is None or mongoAuth == 'None':
-        connect(collectionName, host=host, port=port)
+        return connect(collectionName, host=host, port=port, maxpoolsize=None)
     else:
-        connect(
+        return connect(
             collectionName, host=host, port=port,
             username=mongoConfiguration['username'], password=mongoConfiguration['password'],
-            authentication_source=mongoConfiguration['authentication_source']
+            authentication_source=mongoConfiguration['authentication_source'],
+            maxpoolsize=None
         )
 
     # monitoring.register(CommandLogger())
