@@ -18,7 +18,7 @@ from util import *
 Loading the Logging library here
 '''
 # logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
-with open('./logging_config.yaml', 'r') as f:
+with open('../logging_config.yaml', 'r') as f:
     config = yaml.safe_load(f.read())
     logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 '''
 Connecting to Mongo DB
 '''
-config = load_config('./elo_config.yaml')
+config = load_config('../elo_config.yaml')
 profile = config["profile"]
 logger.info(f'Loaded configuration for Profile: {profile}')
 init_database(profile, config)

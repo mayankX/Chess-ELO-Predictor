@@ -1,18 +1,14 @@
 __author__ = 'Mayank Tiwari'
 
+from collections import Counter
+
 import chess
-import asyncio
-import chess.pgn
 import chess.engine
+import chess.pgn
 import chess.svg
+from chess import QUEEN
 
-from stockfish import Stockfish
-
-import base64
-import numpy as np  # linear algebra
-import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
-
-from main import convertToBB
+from util import convertToBB
 
 
 def game_analysis():
@@ -61,7 +57,7 @@ def read_multiple_games():
 def test():
     board = chess.Board()
     # pgnFilePath = 'data/test.pgn'
-    pgnFilePath = 'data/game1_2.pgn'
+    pgnFilePath = 'data_temp/game1_2.pgn'
     pgn = open(pgnFilePath)
     game = chess.pgn.read_game(pgn)
 
@@ -71,7 +67,44 @@ def test():
     diff = 0
     output_data_string = ''
 
+    # New
+    first_check = True
+    first_queen_move = True
+    features = {}
+    # New
+
     for move in game.mainline_moves():
+        # New
+        moved_piece = board.piece_at(move.from_square)
+        captured_piece = board.piece_at(move.to_square)
+
+        if moved_piece == QUEEN and first_queen_move:
+            features['queen_moved_at'] = board.fullmove_number
+            first_queen_move = False
+
+        if captured_piece == QUEEN:
+            features['queen_changed_at'] = board.fullmove_number
+
+        if move.promotion:
+            features['promotion'] += 1
+        if board.is_check():
+            features['total_checks'] += 1
+            if first_check:
+                features['first_check_at'] = board.fullmove_number
+                first_check = False
+
+                # castling
+                uci_repr = move.uci()
+                if uci_repr == 'e1g1':
+                    features['white_king_castle'] = board.fullmove_number
+                elif uci_repr == 'e1c1':
+                    features['white_queen_castle'] = board.fullmove_number
+                elif uci_repr == 'e8g8':
+                    features['black_king_castle'] = board.fullmove_number
+                elif uci_repr == 'e8c8':
+                    features['black_queen_castle'] = board.fullmove_number
+        # New
+
         board.push(move)
 
         print("=" * 50)
@@ -111,7 +144,27 @@ def test():
         out_board = convertToBB(board)
         output_data_string = '{0}{1},{2}\n'.format(output_data_string, out_board, evaluation_label)
 
-    print(output_data_string)
+    # New
+    if board.is_checkmate():
+        features['is_checkmate'] = 1
+    if board.is_stalemate():
+        features['is_stalemate'] = 1
+    if board.is_insufficient_material():
+        features['insufficient_material'] = 1
+    if board.can_claim_draw():
+        features['can_claim_draw'] = 1
+    features['total_moves'] = board.fullmove_number
+
+    piece_placement = board.fen().split()[0]
+    end_pieces = Counter(x for x in piece_placement if x.isalpha())
+
+    # count number of piece at end position
+    features.update({'end_' + piece: cnt
+                     for piece, cnt in end_pieces.items()})
+    # New
+
+    # print(output_data_string)
+    print(features)
     engine.quit()
 
 

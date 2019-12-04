@@ -12,6 +12,7 @@ from bson.objectid import ObjectId
 
 from models.game import Game
 from util import *
+from json import dumps
 
 '''
 Loading the Logging library here
