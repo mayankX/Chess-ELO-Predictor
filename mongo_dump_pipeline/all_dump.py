@@ -12,19 +12,18 @@ from bson.objectid import ObjectId
 
 from models.game import Game
 from util import *
-from json import dumps
 
 '''
 Loading the Logging library here
 '''
-with open('./logging_config.yaml', 'r') as f:
+with open('../logging_config.yaml', 'r') as f:
     config = yaml.safe_load(f.read())
     logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
 '''
 Connecting to Mongo DB
 '''
-config = load_config('./elo_config.yaml')
+config = load_config('../elo_config.yaml')
 profile = config["profile"]
 logger.info(f'Loaded configuration for Profile: {profile}')
 
@@ -84,5 +83,10 @@ print(f'Result Size: {len(result_final)}')
 # db = connection.get_database('chess')
 # game_collection = db.get_collection('game')
 # game_collection.find_one({'_id': ObjectId('5dc9e654895e978a56ced7c4')})
-with open('data.json', 'w') as outfile:
+from datetime import datetime
+
+now = datetime.now()
+timestampString = now.strftime("%m_%d_%Y_%H_%M_%S")
+fileName = f'../dump/mongo_data_dump_{timestampString}.json'
+with open(fileName, 'w') as outfile:
     json.dump(result_final, outfile, default=json_util.default)
