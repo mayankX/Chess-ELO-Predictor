@@ -6,7 +6,7 @@ import chess
 import chess.engine
 import chess.pgn
 import chess.svg
-from chess import QUEEN
+from chess import QUEEN, Board
 
 from util import convertToBB
 
@@ -159,8 +159,7 @@ def test():
     end_pieces = Counter(x for x in piece_placement if x.isalpha())
 
     # count number of piece at end position
-    features.update({'end_' + piece: cnt
-                     for piece, cnt in end_pieces.items()})
+    features.update({'end_' + piece: cnt for piece, cnt in end_pieces.items()})
     # New
 
     # print(output_data_string)

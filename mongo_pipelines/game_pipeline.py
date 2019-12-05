@@ -81,6 +81,8 @@ def parse_pgn(dirname: str, filename: str):
         moves = list(game.mainline_moves())
         totalMoves = len(moves)
         for index, move in enumerate(moves):
+            turn = board.turn
+
             board.push(move)
             uci = move.uci()
             print(f'{index + 1}/{totalMoves} Analyzing Move {uci} for Game: {counter}...')
@@ -93,7 +95,7 @@ def parse_pgn(dirname: str, filename: str):
             else:
                 evaluation = evaluationVal.mate()
 
-            turn = board.turn
+            # turn = board.turn Moved to top of the loop.
             # if turn:
             #     diff = prev_eval - evaluation
             #     if diff > 0.3:
